@@ -39,10 +39,12 @@ x_velocity=0 #đơn vị vận tốc
 y_velocity=0 
 
 
+
 score=0
 highscore=0
 
 pausing=True
+pausing2=False
 
 font=pygame.font.SysFont('san',20)
 font1=pygame.font.SysFont('san',40)
@@ -141,6 +143,9 @@ soundrunning_check = False
 #biến để đếm thời gian tăng dộ khó cho game
 speed_increment_interval = 900  # 15 giây (60 frame/giây * 15 giây = 900 frame)
 speed_increment_counter = 0
+temp_x_velocity=0
+temp_y_velocity=0
+temp_thienthach_vantoc=0
 # Vòng lặp game
 running = True
 while running:
@@ -247,6 +252,27 @@ while running:
     if background_x+600<=0:
         background_x=0
 
+    #Xử lý dừng game
+    if pausing==True or pausing2:
+        if pausing:
+            pausing_txt=font1.render("Press Space to play!",True,WHITE)
+            screen.blit(pausing_txt,(160,250))
+        elif pausing2:
+            pausing_txt=font1.render("Press P to countinue!",True,WHITE)
+            screen.blit(pausing_txt,(150,250))
+            speed_increment_counter += 0
+        x_velocity=0 
+        y_velocity=0
+        thienthach_vantoc=0
+    else:
+        if pausing2 == False:
+            x_velocity=temp_x_velocity
+            y_velocity=temp_y_velocity
+            thienthach_vantoc=temp_thienthach_vantoc
+            speed_increment_counter += 1
+
+        
+
     #điều kiện thua
     if (zero_rect.colliderect(enemy_rect) and zero_attacking==False and enemydie_check==False) or (zero_rect.colliderect(enemy2_rect) and zero_attacking==False and enemydie2_check==False):
         if not sound_played:
@@ -256,9 +282,6 @@ while running:
         pausing=True
         gameover_txt=font1.render("GAME OVER!!!!",True,RED)
         screen.blit(gameover_txt,(200,150))
-        x_velocity=0 
-        y_velocity=0
-        thienthach_vantoc=0
         zerodie_check = True
         zerostandright_check = False
         zero_run_left = False
@@ -276,9 +299,6 @@ while running:
             screen.blit(gameover_txt,(200,150))
             # Kết thúc trò chơi nếu có va chạm
             pausing = True
-            x_velocity=0 
-            y_velocity=0
-            thienthach_vantoc=0
             zerodie_check = True
             zerostandright_check = False
             zero_run_left = False
@@ -299,11 +319,13 @@ while running:
             highscore=score
 
     #Xử lý tăng độ khó cho game
-    speed_increment_counter += 1
     if speed_increment_counter >= speed_increment_interval:
         x_velocity = x_velocity + 2  # Tăng tốc độ di chuyển
         thienthach_vantoc = thienthach_vantoc + 2  # Tăng tốc độ rơi của thiên thạch
         speed_increment_counter = 0
+        temp_x_velocity=x_velocity
+        temp_y_velocity=y_velocity
+        temp_thienthach_vantoc=thienthach_vantoc
 
     # Các lệnh vẽ và xử lý game ở đây
     for event in pygame.event.get():
@@ -326,6 +348,7 @@ while running:
                     enemy2_y= 100
                     x_velocity=10 
                     y_velocity=10
+                    thienthach_vantoc = 5
                     score=0
                     pausing=False
                     sound_played = False
@@ -336,13 +359,18 @@ while running:
                     zero_run_right =False
                     zerostandleft_check = False
                     zerodie_check = False
+                    temp_x_velocity=x_velocity
+                    temp_y_velocity=y_velocity
+                    temp_thienthach_vantoc=thienthach_vantoc
                     for i in range(3):
                         x = random.randint(0, 600)
                         y = random.randint(-500, -40)
                         thienthachs[i] = (x,y)
-                    thienthach_vantoc = 5
                     speed_increment_counter = 0
-            if pausing==False:
+            elif event.key == pygame.K_p:
+                pausing2 = not pausing2
+
+            if pausing==False and pausing2==False:
         # Xử lý sự kiện nhấn phím tấn công (phím C)
                 if event.key == pygame.K_c:
                     pygame.mixer.Sound.play(sound3)
@@ -364,7 +392,7 @@ while running:
                     zerostandright_check =False
 
         elif event.type == pygame.KEYUP:
-            if pausing == False:
+            if pausing == False and pausing2==False:
                 if event.key == pygame.K_RIGHT:
                     zerostandleft_check = False
                     zero_run_right = False
